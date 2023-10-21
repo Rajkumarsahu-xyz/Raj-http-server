@@ -1,11 +1,9 @@
-const http = require("http");
+const express = require("express");
+const app = express();
 const port = 3000;
 
-const server = http.createServer((req, res) => {
-  var splitUrl = (req.url).split("/");
-  if (splitUrl[1] === "html") {
-    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    res.write(`
+app.get("/html", (req, res) => {
+  res.send(`
     <!DOCTYPE html>
     <html>
     <head>
@@ -13,66 +11,68 @@ const server = http.createServer((req, res) => {
     <body>
         <h1>Any fool can write code that a computer can understand. Good programmers write code that humans can understand.</h1>
         <p> - Martin Fowler</p>
-
     </body>
     </html>
-    `);
-    res.end();
-  } else if (splitUrl[1] === "json") {
-    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-    res.write(`{
-        "slideshow": {
-          "author": "Yours Truly",
-          "date": "date of publication",
-          "slides": [
-            {
-              "title": "Wake up to WonderWidgets!",
-              "type": "all"
-            },
-            {
-              "items": [
-                "Why <em>WonderWidgets</em> are great",
-                "Who <em>buys</em> WonderWidgets"
-              ],
-              "title": "Overview",
-              "type": "all"
-            }
-          ],
-          "title": "Sample Slide Show"
-        }
-      }`);
-    res.end();
-  } else if (splitUrl[1] === "uuid") {
-    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-    res.write(`
-      {
-        "uuid": "14d96bb1-5d53-472f-a96e-b3a1fa82addd"
-      }
-    `);
-    res.end();
-  } else if (splitUrl[1] === "status") {
-    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    res.write(`Return a response with ${splitUrl[2]} status code`);
-    res.end();
-  } else if (splitUrl[1] === "delay") {
-    const delay_in_seconds = parseInt(splitUrl[2]);
+  `);
+});
 
-    if (!isNaN(delay_in_seconds)) {
-      setTimeout(() => {
-        res.writeHead(200, { "Content-Type": "text/plain" });
-        res.end(`Delayed response after ${delay_in_seconds} seconds`);
-      }, delay_in_seconds * 1000);
-    } else {
-      res.writeHead(400, { "Content-Type": "text/plain" });
-      res.end(`Bad Request. Invalid delay time.`);
+app.get("/json", (req, res) => {
+  res.json(`{
+    "slideshow": {
+      "author": "Yours Truly",
+      "date": "date of publication",
+      "slides": [
+        {
+          "title": "Wake up to WonderWidgets!",
+          "type": "all"
+        },
+        {
+          "items": [
+            "Why <em>WonderWidgets</em> are great",
+            "Who <em>buys</em> WonderWidgets"
+          ],
+          "title": "Overview",
+          "type": "all"
+        }
+      ],
+      "title": "Sample Slide Show"
     }
+  }`);
+});
+
+app.get("/uuid", (req, res) => {
+  res.json(`{
+    "uuid": "14d96bb1-5d53-472f-a96e-b3a1fa82addd"
+  }`);
+});
+
+app.get("/status/:code", (req, res) => {
+  const status_code = parseInt(req.params.code);
+  res.status(status_code).send(`Return a response with ${status_code} status code`);
+});
+
+app.get("/delay/:seconds", (req, res) => {
+  const delay_in_seconds = parseInt(req.params.seconds);
+
+  if (!isNaN(delay_in_seconds)) {
+    setTimeout(() => {
+      res.send(`Delayed response after ${delay_in_seconds} seconds`);
+    }, delay_in_seconds * 1000);
   } else {
-    res.writeHead(404, { "Content-Type": "text/plain" });
-    res.write("404 Not Found\n");
-    res.end();
+    res.status(400).send("Bad Request. Invalid delay time.");
   }
 });
 
-server.listen(port, () => {
+app.use((req, res) => {
+  res.status(404).send("404 Not Found");
+});
+
+app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
+
+
+
+
+
